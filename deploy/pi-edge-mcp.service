@@ -1,0 +1,19 @@
+[Unit]
+Description=Pi Edge MCP telemetry server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/pi-edge-mcp.env
+ExecStart=/opt/pi-edge-mcp/.venv/bin/pi-edge-mcp
+Restart=on-failure
+RestartSec=3
+# Read-only telemetry: lock the service down.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
