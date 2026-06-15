@@ -14,14 +14,17 @@ The official MCP SDK and FastMCP depend on `pydantic-core`, which is compiled
 Rust. On a 64-bit Pi (aarch64) that is a non-issue: a prebuilt `pydantic-core`
 wheel exists and FastMCP installs fine. The pure-Python stack matters when:
 
-- You run a **32-bit Pi OS** or an older **ARMv6** board (Pi Zero / Zero W /
-  Pi 1). `pydantic-core` ships no wheel for ARMv6, and building it with Rust on
-  that hardware is slow and fragile. AnodizeMCP installs with no build step.
+- You run an **ARMv6** board (Pi Zero / Zero W / Pi 1). `pydantic-core` publishes
+  no ARMv6 wheel (manylinux does not define ARMv6), so installing FastMCP there
+  falls back to building `pydantic-core` with Rust, which a stock Pi Zero cannot
+  do. AnodizeMCP installs with no build step. (A 32-bit ARMv7 board such as a Pi
+  2/3/4 on a 32-bit OS *does* get a prebuilt `pydantic-core` wheel, so FastMCP
+  installs there; ARMv6 is the case that has none.)
 - You want a **small, fast install** on flash storage: one pure-Python
   dependency (`uvicorn`) instead of `pydantic` and its tree.
 
-On this hardware the benefit is leanness; on ARMv6 it is the difference between
-installing and not.
+On a 64-bit or ARMv7 Pi the benefit is leanness; on ARMv6 it is the difference
+between installing and not.
 
 ## Install
 
