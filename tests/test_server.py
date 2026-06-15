@@ -13,6 +13,9 @@ _EXPECTED_TOOLS = {
     "memory_usage",
     "disk_usage",
     "top_processes",
+    "ping_host",
+    "read_gpio",
+    "set_gpio",
 }
 
 
@@ -45,6 +48,19 @@ class PiEdgeServerTest(unittest.TestCase):
     def test_auth_required_when_token_set(self):
         mcp = build_server(token="secret-token")
         self.assertIsNotNone(mcp.auth)
+
+    def test_gpiozero_tools_present_and_structured(self):
+        # gpiozero is optional; off-Pi the tools must return a structured result
+        # (available true or false) rather than crashing.
+        async def go():
+            async with Client(build_server()) as client:
+                ping = (await client.call_tool("ping_host", {"host": "127.0.0.1"})).data
+                self.assertIn("available", ping)
+                self.assertIn(ping["available"], (True, False))
+                gpio_read = (await client.call_tool("read_gpio", {"pin": 17})).data
+                self.assertIn("available", gpio_read)
+
+        asyncio.run(go())
 
     def test_pi_specific_tools_degrade_gracefully(self):
         # Off-Pi these return null/empty without raising; on the device they carry real values.

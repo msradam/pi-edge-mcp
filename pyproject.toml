@@ -13,6 +13,11 @@ authors = [{ name = "Adam Munawar Rahman" }]
 keywords = ["mcp", "model-context-protocol", "raspberry-pi", "telemetry", "pure-python", "no-rust"]
 dependencies = ["anodize-mcp>=0.7"]
 
+# GPIO/hardware tools. gpiozero is pure Python; its backend (lgpio) is C, not
+# Rust, so the pair installs on a Pi Zero (armv6) via apt or a C build.
+[project.optional-dependencies]
+pi = ["gpiozero"]
+
 [project.scripts]
 pi-edge-mcp = "pi_edge_mcp.__main__:main"
 

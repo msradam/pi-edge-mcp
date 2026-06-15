@@ -9,11 +9,13 @@ EnvironmentFile=/etc/pi-edge-mcp.env
 ExecStart=/opt/pi-edge-mcp/.venv/bin/pi-edge-mcp
 Restart=on-failure
 RestartSec=3
-# Read-only telemetry: lock the service down.
 NoNewPrivileges=true
-ProtectSystem=strict
-ProtectHome=true
-PrivateTmp=true
+# The gpiozero tools reach GPIO via lgpio (/dev/gpiochip*). ProtectSystem=strict
+# breaks the pin factory, so use =full (protects /usr,/boot,/etc, leaves devices
+# reachable) and grant the gpio group. Drop these two lines if you do not use the
+# GPIO tools and want stricter sandboxing.
+ProtectSystem=full
+SupplementaryGroups=gpio
 
 [Install]
 WantedBy=multi-user.target

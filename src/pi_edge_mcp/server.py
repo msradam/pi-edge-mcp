@@ -5,7 +5,7 @@ from typing import Optional
 
 from anodize_mcp import AnodizeMCP, StaticTokenVerifier
 
-from . import metrics
+from . import gpio, metrics
 
 
 def build_server(token: Optional[str] = None) -> AnodizeMCP:
@@ -59,6 +59,24 @@ def build_server(token: Optional[str] = None) -> AnodizeMCP:
     def top_processes(limit: int = 5) -> list[metrics.Process]:
         "The `limit` processes using the most resident memory (RSS)."
         return metrics.top_processes_by_memory(limit)
+
+    # Hardware tools backed by the gpiozero Python library. They report
+    # `available: false` where gpiozero is not installed (e.g. local dev).
+    @mcp.tool
+    def ping_host(host: str) -> gpio.PingResult:
+        "Check whether a host is reachable, via gpiozero's PingServer."
+        return gpio.ping_host(host)
+
+    @mcp.tool
+    def read_gpio(pin: int) -> gpio.GpioReading:
+        "Read the digital value of a GPIO pin (BCM numbering), via gpiozero."
+        return gpio.read_gpio(pin)
+
+    @mcp.tool
+    def set_gpio(pin: int, on: bool) -> gpio.GpioWrite:
+        "Drive a GPIO output pin (BCM numbering) high or low, via gpiozero."
+        "Ensure nothing critical is wired to the pin; the pin stays driven until set off."
+        return gpio.set_gpio(pin, on)
 
     @mcp.resource("telemetry://snapshot")
     def snapshot() -> dict:

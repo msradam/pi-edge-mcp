@@ -36,6 +36,15 @@ python3 -m venv .venv
 Requires Python 3.9+. The only third-party dependencies are `anodize-mcp` and
 `uvicorn`, both pure Python.
 
+For the GPIO/hardware tools, install the `pi` extra and a backend. On a Pi the
+backend comes from `apt` (it is C, packaged per-arch including armv6):
+
+```sh
+sudo apt install -y python3-lgpio          # GPIO backend (C, not Rust)
+python3 -m venv --system-site-packages .venv
+.venv/bin/pip install -e ".[pi]"           # gpiozero (pure Python)
+```
+
 ## Run
 
 ```sh
@@ -70,8 +79,27 @@ Configuration (environment variables):
 - resource `telemetry://snapshot` — all of the above in one read
 - prompt `diagnose` — asks the model to assess health from the snapshot
 
-Off-Pi, the Pi-specific readers return null/empty rather than failing, so the
-server runs in local development too.
+The metric readers above use only the standard library. The hardware tools below
+use the [gpiozero](https://gpiozero.readthedocs.io) library:
+
+- `ping_host(host)` — reachability check via gpiozero's `PingServer`
+- `read_gpio(pin)` — read a GPIO input pin (BCM numbering)
+- `set_gpio(pin, on)` — drive a GPIO output pin high/low (the pin stays driven
+  until set off; make sure nothing critical is wired to it)
+
+Off-Pi, the Pi-specific readers return null/empty and the gpiozero tools report
+`available: false` rather than failing, so the server runs in local development too.
+
+## Why gpiozero is the point
+
+A telemetry server reading `/proc` could be hand-written as raw JSON-RPC; it does
+not justify a framework. The hardware tools do. `gpiozero` is a real, widely used
+Python library, and it (with a backend like `lgpio`) is pure-Python / C, **not
+Rust**, so it installs on a Pi Zero (armv6) via `apt install python3-gpiozero
+python3-lgpio` where FastMCP's `pydantic-core` cannot. anodize lets you wrap that
+library as typed MCP tools, with transports, sessions, and auth, without
+hand-rolling the protocol. That is the niche: the Python library ecosystem plus
+MCP framework ergonomics, on hardware the Rust-based MCP stack cannot reach.
 
 ## Deploy on a Pi (systemd)
 
